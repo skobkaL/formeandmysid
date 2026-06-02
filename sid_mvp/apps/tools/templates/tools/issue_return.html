@@ -1,0 +1,75 @@
+{% extends 'tools/base.html' %}
+{% block title %}{{ tool.inventory_number }} — операция{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            {% if tool.status == 'in_stock' %}📤 Выдача инструмента{% else %}📥 Возврат инструмента{% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info mb-4">
+            <strong>{{ tool.name }}</strong> ({{ tool.inventory_number }})<br>
+            Текущий статус: {{ tool.get_status_display }} • Местонахождение: {{ tool.location|default:"—" }}
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Тип операции</label>
+                    {{ form.operation_type }}
+                    {% if form.operation_type.errors %}
+                        <div class="text-danger small mt-1">{{ form.operation_type.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Сотрудник *</label>
+                    {{ form.employee }}
+                    {% if form.employee.errors %}
+                        <div class="text-danger small mt-1">{{ form.employee.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                {% if tool.status == 'in_stock' %}
+                <div class="col-md-12">
+                    <label class="form-label">Выдать на участок *</label>
+                    {{ form.to_location }}
+                    {% if form.to_location.errors %}
+                        <div class="text-danger small mt-1">{{ form.to_location.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {# from_location скрыт #}
+                {{ form.from_location }}
+                {% else %}
+                <div class="col-md-12">
+                    <label class="form-label">Вернуть на склад *</label>
+                    {{ form.to_location }}
+                    {% if form.to_location.errors %}
+                        <div class="text-danger small mt-1">{{ form.to_location.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                {# from_location видим #}
+                {{ form.from_location }}
+                {% endif %}
+                
+                <div class="col-12">
+                    <label class="form-label">Примечание</label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                        <div class="text-danger small mt-1">{{ form.notes.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    {% if tool.status == 'in_stock' %}📤 Подтвердить выдачу{% else %}📥 Подтвердить возврат{% endif %}
+                </button>
+                <a href="{% url 'tools:tool_detail' tool.pk %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

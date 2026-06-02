@@ -1,0 +1,40 @@
+{% extends 'tools/base.html' %}
+{% block title %}Списание {{ tool.inventory_number }}{% endblock %}
+{% block content %}
+<div class="card border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">⚠️ Подтверждение списания</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <strong>Внимание!</strong> Вы собираетесь списать инструмент:<br>
+            <strong>{{ tool.name }}</strong> ({{ tool.inventory_number }})<br>
+            <br>
+            Это действие <strong>необратимо</strong>. Остаточная стоимость будет обнулена, 
+            инструмент исчезнет из активных отчетов.
+        </div>
+        
+        <div class="mb-3">
+            <strong>Текущее состояние:</strong><br>
+            Статус: {{ tool.get_status_display }}<br>
+            Местонахождение: {{ tool.location|default:"—" }}<br>
+            Остаточная стоимость: {{ tool.residual_cost|floatformat:2 }} ₽
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label class="form-label">Причина списания <span class="text-danger">*</span></label>
+                <textarea name="reason" class="form-control" rows="3" required 
+                          placeholder="Например:&#10;- вышел из строя (сломался редукtor)&#10;- утерян сотрудником&#10;- критический износ&#10;- украден"></textarea>
+                <div class="form-text">Укажите подробную причину для бухгалтерии</div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">🗑️ Подтвердить списание</button>
+                <a href="{% url 'tools:tool_detail' tool.pk %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'tools/base.html' %}
+{% block title %}Инструменты{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0">Список инструментов</h5>
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Поиск..." value="{{ query }}" style="width:200px">
+            <select name="status" class="form-select form-select-sm" style="width:150px">
+                <option value="">Все статусы</option>
+                <option value="in_stock" {% if request.GET.status == 'in_stock' %}selected{% endif %}>На складе</option>
+                <option value="issued" {% if request.GET.status == 'issued' %}selected{% endif %}>Выдан</option>
+                <option value="verification" {% if request.GET.status == 'verification' %}selected{% endif %}>На поверке</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">Найти</button>
+            {% if query or request.GET.status %}
+            <a href="{% url 'tools:tool_list' %}" class="btn btn-sm btn-outline-secondary">Сбросить</a>
+            {% endif %}
+        </form>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>№</th>
+                        <th>Инструмент</th>
+                        <th>Категория</th>
+                        <th>Статус</th>
+                        <th>Местонахождение</th>
+                        <th>Стоимость</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tool in tools %}
+                    <tr>
+                        <td>{{ tool.inventory_number }}</td>
+                        <td>
+                            <strong>{{ tool.name }}</strong><br>
+                            <small class="text-muted">{{ tool.brand }} {{ tool.model }}</small>
+                        </td>
+                        <td>{{ tool.category }}</td>
+                        <td>
+                            <span class="badge bg-{{ tool.status|yesno:'success,warning,info,secondary' }}">
+                                {{ tool.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ tool.location|default:"—" }}</td>
+                        <td>{{ tool.residual_cost|floatformat:0 }} ₽</td>
+                        <td>
+                            <a href="{% url 'tools:tool_detail' tool.pk %}" class="btn btn-sm btn-outline-primary">Просмотр</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="7" class="text-center py-4 text-muted">Инструменты не найдены</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

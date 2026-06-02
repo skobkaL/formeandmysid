@@ -1,0 +1,126 @@
+{% extends 'tools/base.html' %}
+
+{% block title %}Отчёт о наличии{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="mb-0">📊 Отчёт о наличии инструментов</h5>
+        <button onclick="window.print()" class="btn btn-sm btn-outline-secondary no-print">🖨️ Печать / PDF</button>
+    </div>
+    
+    <div class="card-body">
+        <div class="text-muted mb-3 small">
+            Дата формирования: {% now "d.m.Y H:i" %} | 
+            Пользователь: {{ user.get_full_name|default:user.username }} | 
+            Роль: {{ user.get_role_display }}
+        </div>
+
+        <!-- Сводные данные -->
+        <div class="row mb-4 g-3">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">📦 По статусу</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr><th>Статус</th><th class="text-end">Кол-во</th><th class="text-end">Стоимость</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in by_status %}
+                                <tr>
+                                    <td>{{ item.get_status_display|default:item.status|capfirst }}</td>
+                                    <td class="text-end">{{ item.count }}</td>
+                                    <td class="text-end">{{ item.value|default:0|floatformat:2 }} ₽</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted">Нет данных</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0">🏷️ По категориям</h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr><th>Категория</th><th class="text-end">Кол-во</th></tr>
+                            </thead>
+                            <tbody>
+                                {% for item in by_category %}
+                                <tr>
+                                    <td>{{ item.category__name|default:"Не указана" }}</td>
+                                    <td class="text-end">{{ item.count }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="2" class="text-center text-muted">Нет данных</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Детальный список -->
+        <h6 class="mb-3">📋 Детальный перечень</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Инв. №</th>
+                        <th>Наименование</th>
+                        <th>Категория</th>
+                        <th>Статус</th>
+                        <th>Местонахождение</th>
+                        <th class="text-end">Ост. стоимость</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tool in tools %}
+                    <tr>
+                        <td class="fw-medium">{{ tool.inventory_number }}</td>
+                        <td>{{ tool.name }} {% if tool.brand %}<span class="text-muted">({{ tool.brand }})</span>{% endif %}</td>
+                        <td>{{ tool.category.name }}</td>
+                        <td>
+                            <span class="badge bg-{{ tool.status|yesno:'success,warning,info,secondary' }}">
+                                {{ tool.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ tool.location.name|default:"—" }}</td>
+                        <td class="text-end">{{ tool.residual_cost|floatformat:2 }} ₽</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">Инструменты не найдены</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Стили для печати -->
+<style>
+    @media print {
+        .navbar, footer, .no-print, button, .btn { display: none !important; }
+        body { background: #fff; padding: 0; font-size: 10pt; }
+        .container { max-width: 100%; padding: 0; }
+        .card { border: none !important; box-shadow: none !important; margin-bottom: 1rem; }
+        .card-header { background: #f8f9fa !important; border-bottom: 1px solid #dee2e6; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        thead { display: table-header-group; }
+        tfoot { display: table-footer-group; }
+    }
+</style>
+{% endblock %}

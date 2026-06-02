@@ -1,0 +1,125 @@
+{% extends 'tools/base.html' %}
+{% block title %}{{ tool.inventory_number }}{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ tool.name }}</h5>
+                {% if user.can_manage_tools %}
+                <a href="{% url 'tools:tool_edit' tool.pk %}" class="btn btn-sm btn-outline-secondary">✎ Редактировать</a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Инвентарный номер:</strong> {{ tool.inventory_number }}</p>
+                        <p><strong>Марка/модель:</strong> {{ tool.brand|default:"—" }} {{ tool.model|default:"—" }}</p>
+                        <p><strong>Категория:</strong> {{ tool.category }}</p>
+                        <p><strong>Дата приобретения:</strong> {{ tool.purchase_date|date:"d.m.Y" }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Первоначальная стоимость:</strong> {{ tool.initial_cost|floatformat:2 }} ₽</p>
+                        <p><strong>Остаточная стоимость:</strong> {{ tool.residual_cost|floatformat:2 }} ₽</p>
+                        <p><strong>Статус:</strong> 
+                            <span class="badge bg-{{ tool.status|yesno:'success,warning,info,secondary' }} fs-6">
+                                {{ tool.get_status_display }}
+                            </span>
+                        </p>
+                        <p><strong>Местонахождение:</strong> {{ tool.location|default:"—" }}</p>
+                    </div>
+                </div>
+                {% if tool.notes %}
+                <hr>
+                <p><strong>Примечание:</strong> {{ tool.notes }}</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if can_operate %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Выполнить операцию</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'tools:tool_operation' tool.pk %}" class="btn btn-primary">
+                    {% if tool.status == 'in_stock' %}📤 Выдать инструмент{% else %}📥 Вернуть инструмент{% endif %}
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- КНОПКА СПИСАНИЯ - ДОБАВЛЕНО -->
+        {% if tool.status != 'written_off' and user.can_manage_tools %}
+        <div class="card mb-4 border-danger">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-danger fw-bold">⚠️ Зона риска</span><br>
+                    <small class="text-muted">Инструмент сломан, утерян или изношен?</small>
+                </div>
+                <a href="{% url 'tools:tool_write_off' tool.pk %}" class="btn btn-outline-danger">
+                    🗑️ Списать инструмент
+                </a>
+            </div>
+        </div>
+        {% endif %}
+        <!-- КОНЕЦ БЛОКА СПИСАНИЯ -->
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">История операций</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Дата</th>
+                                <th>Операция</th>
+                                <th>Сотрудник</th>
+                                <th>Выполнил</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in movements %}
+                            <tr>
+                                <td>{{ m.operation_date|date:"d.m.Y H:i" }}</td>
+                                <td>{{ m.get_operation_type_display }}</td>
+                                <td>{{ m.employee.get_full_name|default:m.employee.username }}</td>
+                                <td>{{ m.performed_by.get_short_name|default:m.performed_by.username }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-3 text-muted">Нет записей</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">QR-код</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if tool.qr_code %}
+                <img src="{{ tool.qr_code.url }}" alt="QR {{ tool.inventory_number }}" class="img-fluid border" style="max-width:200px">
+                <div class="mt-3">
+                    <a href="{% url 'tools:qr_print' tool.pk %}" class="btn btn-outline-primary btn-sm" target="_blank">🖨️ Печать</a>
+                </div>
+                {% else %}
+                <p class="text-muted">QR-код не сгенерирован</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body">
+                <a href="{% url 'tools:tool_list' %}" class="btn btn-secondary w-100">← Назад к списку</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

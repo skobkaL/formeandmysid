@@ -1,0 +1,95 @@
+{% extends 'tools/base.html' %}
+{% block title %}Дашборд{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary h-100">
+            <div class="card-body">
+                <h6 class="card-title">Всего инструментов</h6>
+                <h2 class="display-6 fw-bold">{{ stats.total }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success h-100">
+            <div class="card-body">
+                <h6 class="card-title">На складе</h6>
+                <h2 class="display-6 fw-bold">{{ stats.in_stock }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning h-100">
+            <div class="card-body">
+                <h6 class="card-title">Выдано</h6>
+                <h2 class="display-6 fw-bold">{{ stats.issued }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info h-100">
+            <div class="card-body">
+                <h6 class="card-title">Общая стоимость</h6>
+                <h2 class="display-6 fw-bold">{{ stats.total_value|floatformat:0 }} ₽</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Последние операции</h5>
+                <a href="{% url 'tools:tool_list' %}" class="btn btn-sm btn-outline-secondary">Все инструменты</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Дата</th>
+                                <th>Инструмент</th>
+                                <th>Операция</th>
+                                <th>Сотрудник</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in stats.recent_movements %}
+                            <tr>
+                                <td>{{ m.operation_date|date:"d.m H:i" }}</td>
+                                <td><a href="{% url 'tools:tool_detail' m.tool.pk %}">{{ m.tool.inventory_number }}</a></td>
+                                <td><span class="badge bg-{{ m.operation_type|yesno:'success,danger' }}">{{ m.get_operation_type_display }}</span></td>
+                                <td>{{ m.employee.get_short_name|default:m.employee.username }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" class="text-center py-4 text-muted">Нет операций</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if user.can_manage_tools %}
+                    <a href="{% url 'tools:tool_create' %}" class="btn btn-primary">+ Зарегистрировать инструмент</a>
+                    {% endif %}
+                    <a href="{% url 'tools:tool_list' %}?status=in_stock" class="btn btn-outline-success">Инструменты на складе</a>
+                    <a href="{% url 'tools:tool_list' %}?status=issued" class="btn btn-outline-warning">Выданные инструменты</a>
+                    {% if user.can_view_reports %}
+                    <a href="{% url 'reports:simple' %}" class="btn btn-outline-info">Сформировать отчёт</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Печать QR: {{ tool.inventory_number }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
+        .qr-container { border: 2px solid #333; padding: 15px; display: inline-block; margin: 10px; }
+        .qr-code { width: 150px; height: 150px; object-fit: contain; }
+        .inventory { font-size: 18px; font-weight: bold; margin-top: 10px; }
+        .tool-name { font-size: 14px; color: #666; margin: 5px 0; }
+        @media print {
+            body { padding: 0; }
+            .no-print { display: none; }
+            .qr-container { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print mb-3">
+        <button onclick="window.print()" class="btn-print">🖨️ Печать</button>
+        <a href="{% url 'tools:tool_detail' tool.pk %}" class="btn-back">← Назад</a>
+    </div>
+    
+    <div class="qr-container">
+        {% if tool.qr_code %}
+        <img src="{{ tool.qr_code.url }}" alt="QR" class="qr-code">
+        {% endif %}
+        <div class="inventory">{{ tool.inventory_number }}</div>
+        <div class="tool-name">{{ tool.name }}</div>
+        <div class="tool-name">{{ tool.brand }} {{ tool.model }}</div>
+    </div>
+    
+    <script>
+    // Автопечать при загрузке (опционально)
+    // window.onload = () => setTimeout(() => window.print(), 500);
+    </script>
+</body>
+</html>

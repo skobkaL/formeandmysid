@@ -1,0 +1,24 @@
+{% extends 'tools/base.html' %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Мой профиль</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>ФИО:</strong> {{ user.get_full_name|default:"Не указано" }}</p>
+                <p><strong>Логин:</strong> {{ user.username }}</p>
+                <p><strong>Табельный номер:</strong> {{ user.employee_id|default:"—" }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Роль:</strong> {{ user.get_role_display }}</p>
+                <p><strong>Подразделение:</strong> {{ user.department|default:"—" }}</p>
+                <p><strong>Телефон:</strong> {{ user.phone|default:"—" }}</p>
+            </div>
+        </div>
+        <a href="{% url 'tools:dashboard' %}" class="btn btn-secondary">← Назад</a>
+    </div>
+</div>
+{% endblock %}
